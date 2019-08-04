@@ -40,7 +40,7 @@ export default class LinksChecker extends PureComponent {
     };
 
     axios
-      .post("http://localhost:5000", link)
+      .post("/", link)
       .then(res => {
         console.log(res.data);
         const stats = this.handleStats(res.data);
