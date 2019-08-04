@@ -1,38 +1,33 @@
 import React, { PureComponent } from "react";
 import axios from "axios";
-import {
-  TextField,
-  Button,
-  Container,
-  Grid,
-  Typography,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  Input,
-  FormHelperText,
-  Divider
-} from "@material-ui/core/";
+import { Container, Grid } from "@material-ui/core/";
+import InputForm from "../components/InputForm/InputForm";
+import StatsField from "../components/StatsField/StatsField";
 import LinksList from "../components/LinksList/LinksList";
-import List from "@material-ui/core/List";
-import LinearProgress from "@material-ui/core/LinearProgress";
+import ErrorMessage from "../components/ErrorMessage/ErrorMessage";
 
-export default class LinksChecker extends PureComponent {
+class LinksChecker extends PureComponent {
   state = {
     pageUrl: "",
     links: [],
     loading: false,
-    stats: null
+    stats: null,
+    pageUrlValidation: null
   };
 
-  pageUrlHandler = event => {
+  handlePageUrlChange = event => {
     this.setState({
       pageUrl: event.target.value
     });
   };
 
-  submitHandler = event => {
-    this.setState({ links: [], loading: true, stats: null });
+  handleSubmit = event => {
+    this.setState({
+      links: [],
+      loading: true,
+      stats: null,
+      pageUrlValidation: null
+    });
     event.preventDefault();
 
     const link = {
@@ -40,31 +35,38 @@ export default class LinksChecker extends PureComponent {
     };
 
     axios
-      .post("/", link)
+      .post("http://localhost:5000/", link)
       .then(res => {
-        console.log(res.data);
-        const stats = this.handleStats(res.data);
-        this.setState({ links: res.data, loading: false, pageUrl: "", stats });
+        if (res.data.error) {
+          console.log(res.data.error);
+          this.setState({ pageUrlValidation: res.data.error, loading: false });
+        } else {
+          const stats = this.handleStats(res.data);
+          this.setState({
+            links: res.data,
+            loading: false,
+            pageUrl: "",
+            stats
+          });
+        }
       })
       .catch(err => console.log(err));
-
-    // this.setState({
-    //   pageUrl: ""
-    // });
   };
 
-  handlePageCheck = link => {
+  handleSubUrlCheck = link => {
     this.setState({ pageUrl: link });
   };
 
   handleStats = data => {
     const checked = data.length;
-    const pass = data.filter(link => link.status === 200).length;
-    const failed = data.filter(link => link.status !== 200).length;
+    const passed = data.filter(
+      link => link.status === 200 || link.status === 999
+    ).length;
+    const failed = checked - passed;
 
     const stats = {
       checked,
-      pass,
+      passed,
       failed
     };
 
@@ -72,73 +74,33 @@ export default class LinksChecker extends PureComponent {
   };
 
   render() {
-    let links = null;
-    if (this.state.links) {
-      links = this.state.links.map((link, index) => (
-        <LinksList link={link} index={index} checkUrl={this.handlePageCheck} />
-      ));
-    }
-
-    let stats = null;
-    if (this.state.stats) {
-      stats = (
-        <Typography>
-          {this.state.stats.checked} links checked: {this.state.stats.pass}{" "}
-          passed, {this.state.stats.failed} failed.
-        </Typography>
-      );
-    }
+    const { links, stats, loading, pageUrlValidation, pageUrl } = this.state;
 
     return (
       <>
+        <InputForm
+          onFormSubmit={this.handleSubmit}
+          loading={loading}
+          pageUrl={pageUrl}
+          onUrlChange={this.handlePageUrlChange}
+          pageUrlValidation={pageUrlValidation}
+        />
         <Container maxWidth="md">
           <Grid container direction="row" justify="center" alignItems="center">
-            <Grid item xs={12} md={8} lg={6}>
-              <form onSubmit={this.submitHandler}>
-                <TextField
-                  id="standard-dense"
-                  label="Page URL"
-                  margin="dense"
-                  variant="outlined"
-                  fullWidth
-                  // type="url"
-                  disabled={this.state.loading}
-                  value={this.state.pageUrl}
-                  onChange={this.pageUrlHandler}
-                  required
-                />
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  type="submit"
-                  disabled={this.state.loading || !this.state.pageUrl}
-                >
-                  Submit
-                </Button>
-              </form>
-            </Grid>
-
-            <Grid
-              item
-              xs={12}
-              container
-              direction="row"
-              justify="center"
-              alignItems="center"
-            >
-              <List>
-                {this.state.stats && stats}
-                {this.state.loading ? (
-                  <CircularProgress color="primary" />
-                ) : (
-                  links
-                )}
-              </List>
-            </Grid>
+            {stats && <StatsField stats={stats} />}
+            {pageUrlValidation && <ErrorMessage error={pageUrlValidation} />}
+            {links && (
+              <LinksList
+                xs={12}
+                links={links}
+                checkUrl={link => this.handleSubUrlCheck(link)}
+              />
+            )}
           </Grid>
-          {/* <LinksTable links={this.state.links} /> */}
         </Container>
       </>
     );
   }
 }
+
+export default LinksChecker;

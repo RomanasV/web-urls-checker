@@ -1,51 +1,57 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 const url = require("url");
+const uuid = require("uuid/v4");
 
 exports.links_get_all = (req, res) => {
-  const pageUrl = url.parse(mainUrlNormalizer(req.body.link));
+  const pageUrl = mainUrlNormalizer(req.body.link);
+  fetchLinks(pageUrl);
 
-  fetchLinks();
-
-  async function fetchLinks() {
+  async function fetchLinks(pageUrl) {
     try {
-      const response = await axios.get(pageUrl.href);
+      const response = await axios.get(pageUrl);
       const links = await scrapeAllPageLinks(response, pageUrl);
+
       const updatedLinks = await links.map(async link => {
+        const id = uuid();
         try {
           const linkResponse = await axios(link);
-
-          return { link, status: linkResponse.status };
+          return { id, link, status: linkResponse.status };
         } catch (error) {
-          return { link, status: error.response.status };
+          return { id, link, status: error.response.status };
         }
       });
       const results = await Promise.all(updatedLinks);
-
+      console.log(results);
       res.json(results);
-    } catch (error) {
-      console.log(error);
+    } catch {
+      const errorMessage = `"${pageUrl}" is not a valid url.`;
+      res.json({
+        error: {
+          link: pageUrl,
+          errorMessage
+        }
+      });
     }
   }
 
-  const scrapeAllPageLinks = (response, pageUrl) => {
+  const scrapeAllPageLinks = (response, pageLink) => {
     const $ = cheerio.load(response.data);
     const links = $("a");
-    let urls = [];
+    const urls = [];
 
     links.each((index, element) => {
       const link = $(element).attr("href");
-      console.log("-------");
-      console.log($(element).html());
-      const normalizedLink = linkNormalizer(link, pageUrl);
-      normalizedLink && urls.push(normalizedLink);
+      if (link) {
+        const normalizedLink = linkNormalizer(link, pageLink);
+        normalizedLink && urls.push(normalizedLink);
+      }
     });
-    console.log(urls);
     return urls;
   };
 
-  function mainUrlNormalizer(mainUrl) {
-    const parsedUrl = url.parse(mainUrl);
+  function mainUrlNormalizer(link) {
+    const parsedUrl = url.parse(link);
 
     if (parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:") {
       return parsedUrl.href;
@@ -54,14 +60,15 @@ exports.links_get_all = (req, res) => {
     }
   }
 
-  function linkNormalizer(link, pageUrl) {
+  function linkNormalizer(link, mainLink) {
+    const mainUrl = url.parse(mainLink);
     const subUrl = url.parse(link);
     let updatedUrlData = {};
 
     if (subUrl.protocol === "https:" || subUrl.protocol === "http:") {
       return subUrl.href;
     } else if (subUrl.path !== null) {
-      return pageUrl.protocol + "//" + pageUrl.hostname + subUrl.path;
+      return mainUrl.protocol + "//" + mainUrl.hostname + subUrl.path;
     } else {
       return;
     }
