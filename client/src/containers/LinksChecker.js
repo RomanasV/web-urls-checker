@@ -12,7 +12,8 @@ class LinksChecker extends PureComponent {
     links: [],
     loading: false,
     stats: null,
-    pageUrlValidation: null
+    error: null,
+    catPic: false
   };
 
   handlePageUrlChange = event => {
@@ -26,7 +27,8 @@ class LinksChecker extends PureComponent {
       links: [],
       loading: true,
       stats: null,
-      pageUrlValidation: null
+      error: null,
+      catPic: false
     });
     event.preventDefault();
 
@@ -34,12 +36,15 @@ class LinksChecker extends PureComponent {
       link: this.state.pageUrl
     };
 
-    axios
-      .post("http://localhost:5000/", link)
+    axios({
+      method: "post",
+      url: "http://localhost:5000/",
+      data: link,
+      timeout: 60000
+    })
       .then(res => {
         if (res.data.error) {
-          console.log(res.data.error);
-          this.setState({ pageUrlValidation: res.data.error, loading: false });
+          this.setState({ error: res.data.error, loading: false });
         } else {
           const stats = this.handleStats(res.data);
           this.setState({
@@ -50,7 +55,11 @@ class LinksChecker extends PureComponent {
           });
         }
       })
-      .catch(err => console.log(err));
+      .catch(() => {
+        const errorMessage =
+          "Oops... Something went wrong. Here is a cat gif so you could feel better and forget about the error.";
+        this.setState({ error: errorMessage, catPic: true, loading: false });
+      });
   };
 
   handleSubUrlCheck = link => {
@@ -59,9 +68,7 @@ class LinksChecker extends PureComponent {
 
   handleStats = data => {
     const checked = data.length;
-    const passed = data.filter(
-      link => link.status === 200 || link.status === 999
-    ).length;
+    const passed = data.filter(link => link.response).length;
     const failed = checked - passed;
 
     const stats = {
@@ -74,7 +81,7 @@ class LinksChecker extends PureComponent {
   };
 
   render() {
-    const { links, stats, loading, pageUrlValidation, pageUrl } = this.state;
+    const { links, stats, loading, error, pageUrl, catPic } = this.state;
 
     return (
       <>
@@ -83,12 +90,12 @@ class LinksChecker extends PureComponent {
           loading={loading}
           pageUrl={pageUrl}
           onUrlChange={this.handlePageUrlChange}
-          pageUrlValidation={pageUrlValidation}
+          error={error}
         />
         <Container maxWidth="md">
           <Grid container direction="row" justify="center" alignItems="center">
             {stats && <StatsField stats={stats} />}
-            {pageUrlValidation && <ErrorMessage error={pageUrlValidation} />}
+            {error && <ErrorMessage error={error} catPic={catPic} />}
             {links && (
               <LinksList
                 xs={12}

@@ -15,27 +15,21 @@ exports.links_get_all = (req, res) => {
       const updatedLinks = await links.map(async link => {
         const id = uuid();
         try {
-          const linkResponse = await axios(link);
-          return { id, link, status: linkResponse.status };
-        } catch (error) {
-          return { id, link, status: error.response.status };
+          await axios(link);
+          return { id, link, response: true };
+        } catch {
+          return { id, link, response: false };
         }
       });
       const results = await Promise.all(updatedLinks);
-      console.log(results);
       res.json(results);
     } catch {
       const errorMessage = `"${pageUrl}" is not a valid url.`;
-      res.json({
-        error: {
-          link: pageUrl,
-          errorMessage
-        }
-      });
+      res.json({ error: errorMessage });
     }
   }
 
-  const scrapeAllPageLinks = (response, pageLink) => {
+  const scrapeAllPageLinks = (response, pageUrl) => {
     const $ = cheerio.load(response.data);
     const links = $("a");
     const urls = [];
@@ -43,7 +37,7 @@ exports.links_get_all = (req, res) => {
     links.each((index, element) => {
       const link = $(element).attr("href");
       if (link) {
-        const normalizedLink = linkNormalizer(link, pageLink);
+        const normalizedLink = linkNormalizer(link, pageUrl);
         normalizedLink && urls.push(normalizedLink);
       }
     });
@@ -63,14 +57,14 @@ exports.links_get_all = (req, res) => {
   function linkNormalizer(link, mainLink) {
     const mainUrl = url.parse(mainLink);
     const subUrl = url.parse(link);
-    let updatedUrlData = {};
-
-    if (subUrl.protocol === "https:" || subUrl.protocol === "http:") {
-      return subUrl.href;
-    } else if (subUrl.path !== null) {
-      return mainUrl.protocol + "//" + mainUrl.hostname + subUrl.path;
-    } else {
-      return;
+    if (subUrl.query === null) {
+      if (subUrl.protocol === "https:" || subUrl.protocol === "http:") {
+        return subUrl.href;
+      } else if (subUrl.path !== null) {
+        return mainUrl.protocol + "//" + mainUrl.hostname + subUrl.path;
+      } else {
+        return;
+      }
     }
   }
 };

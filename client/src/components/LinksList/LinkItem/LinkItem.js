@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Grid, Link, Button } from "@material-ui/core/";
+import { CheckCircleOutline, ErrorOutline } from "@material-ui/icons";
 import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
 
 const LinkItem = props => {
   const { link, checkUrl } = props;
@@ -24,10 +24,19 @@ const LinkItem = props => {
           </Button>
         </Grid>
         <Grid item md={1} xs={1}>
-          <ListItemText primary={link.status} />
+          {link.response ? (
+            <CheckCircleOutline />
+          ) : (
+            <ErrorOutline color="error" />
+          )}
         </Grid>
         <Grid item md={8} xs={11}>
-          <Link href={link.link} underline="none" color="inherit">
+          <Link
+            href={link.link}
+            target="_blank"
+            underline="none"
+            color="inherit"
+          >
             {link.link}
           </Link>
         </Grid>
