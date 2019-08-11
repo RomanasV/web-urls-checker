@@ -50,7 +50,6 @@ class LinksChecker extends PureComponent {
           this.setState({
             links: res.data,
             loading: false,
-            pageUrl: "",
             stats
           });
         }
