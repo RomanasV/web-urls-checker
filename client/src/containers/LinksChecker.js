@@ -38,7 +38,7 @@ class LinksChecker extends PureComponent {
 
     axios({
       method: "post",
-      url: "http://localhost:5000/",
+      url: "/",
       data: link,
       timeout: 60000
     })
@@ -98,7 +98,6 @@ class LinksChecker extends PureComponent {
             {error && <ErrorMessage error={error} catPic={catPic} />}
             {links && (
               <LinksList
-                xs={12}
                 links={links}
                 checkUrl={link => this.handleSubUrlCheck(link)}
               />
