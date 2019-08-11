@@ -7,7 +7,7 @@ const LinksList = props => {
   const { links, checkUrl } = props;
 
   return (
-    <List>
+    <List style={{ width: "100%" }}>
       {links &&
         links.map(link => (
           <LinkItem key={link.id} link={link} checkUrl={checkUrl} />
