@@ -38,7 +38,7 @@ class LinksChecker extends PureComponent {
 
     axios({
       method: "post",
-      url: "http://localhost:5000/",
+      url: "/",
       data: link,
       timeout: 60000
     })
