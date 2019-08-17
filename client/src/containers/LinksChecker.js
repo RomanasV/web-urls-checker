@@ -13,7 +13,8 @@ class LinksChecker extends PureComponent {
     loading: false,
     stats: null,
     error: null,
-    catPic: false
+    catPic: false,
+    parsedUrl: ""
   };
 
   handlePageUrlChange = event => {
@@ -40,17 +41,19 @@ class LinksChecker extends PureComponent {
       method: "post",
       url: "/",
       data: link,
-      timeout: 60000
+      timeout: 90000
     })
       .then(res => {
         if (res.data.error) {
           this.setState({ error: res.data.error, loading: false });
         } else {
-          const stats = this.handleStats(res.data);
+          const stats = this.handleStats(res.data.checkedLinks);
           this.setState({
-            links: res.data,
+            links: res.data.checkedLinks,
             loading: false,
-            stats
+            stats,
+            parsedUrl: res.data.parsedUrl,
+            pageUrl: ""
           });
         }
       })
@@ -80,7 +83,15 @@ class LinksChecker extends PureComponent {
   };
 
   render() {
-    const { links, stats, loading, error, pageUrl, catPic } = this.state;
+    const {
+      links,
+      stats,
+      loading,
+      error,
+      pageUrl,
+      catPic,
+      parsedUrl
+    } = this.state;
 
     return (
       <>
@@ -93,7 +104,7 @@ class LinksChecker extends PureComponent {
         />
         <Container maxWidth="md">
           <Grid container direction="row" justify="center" alignItems="center">
-            {stats && <StatsField stats={stats} />}
+            {stats && <StatsField stats={stats} pageUrl={parsedUrl} />}
             {error && <ErrorMessage error={error} catPic={catPic} />}
             {links && (
               <LinksList

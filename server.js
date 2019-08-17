@@ -1,8 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const request = require("request");
-const cheerio = require("cheerio");
-const axios = require("axios");
 const path = require("path");
 
 const linksRouter = require("./routes/links");

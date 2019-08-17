@@ -21,11 +21,11 @@ exports.links_get_all = (req, res) => {
           return { id, link, response: false };
         }
       });
-      const results = await Promise.all(updatedLinks);
-      res.json(results);
+      const checkedLinks = await Promise.all(updatedLinks);
+      res.json({ checkedLinks, parsedUrl: pageUrl });
     } catch {
       const errorMessage = `"${pageUrl}" is not a valid url.`;
-      res.json({ error: errorMessage });
+      res.json({ error: errorMessage, pageUrl });
     }
   }
 
@@ -57,13 +57,16 @@ exports.links_get_all = (req, res) => {
   function linkNormalizer(link, mainLink) {
     const mainUrl = url.parse(mainLink);
     const subUrl = url.parse(link);
+
     if (subUrl.query === null) {
       if (subUrl.protocol === "https:" || subUrl.protocol === "http:") {
         return subUrl.href;
-      } else if (subUrl.path !== null) {
-        return mainUrl.protocol + "//" + mainUrl.hostname + subUrl.path;
-      } else {
-        return;
+      } else if (subUrl.path !== null && subUrl.protocol === null) {
+        if (subUrl.href.startsWith("//")) {
+          return mainUrl.protocol + subUrl.path;
+        } else {
+          return mainUrl.protocol + "//" + mainUrl.hostname + subUrl.path;
+        }
       }
     }
   }
