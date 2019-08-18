@@ -1,11 +1,60 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Grid, Link, Button, Typography } from "@material-ui/core/";
+import {
+  Grid,
+  Link,
+  Button,
+  Typography,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  DialogTitle,
+  Box
+} from "@material-ui/core/";
 import { CheckCircleOutline, ErrorOutline } from "@material-ui/icons";
 import ListItem from "@material-ui/core/ListItem";
 
 const LinkItem = props => {
+  const [open, setOpen] = React.useState(false);
   const { link, checkUrl } = props;
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const modal = (
+    <Dialog fullWidth maxWidth="lg" open={open} onClose={handleClose}>
+      <DialogTitle>
+        <Typography>
+          <strong>Original:</strong> <em>{link.originalLink}</em>
+        </Typography>
+        <Typography>
+          <strong>Modified:</strong> <em>{link.link}</em>
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Box
+          component="pre"
+          my={2}
+          p={1}
+          whiteSpace="pre-wrap"
+          bgcolor="#F0F0F0"
+          color="black"
+        >
+          <code>{link.linkInHtml.trim()}</code>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="primary">
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 
   return (
     <ListItem divider dense>
@@ -19,7 +68,7 @@ const LinkItem = props => {
         </Grid>
 
         <Grid item md={3} sm={11} xs={11}>
-          <Button href={link.link} target="_blank" size="small" color="primary">
+          <Button href={link.link} target="_blank" size="small" color="inherit">
             Visit
           </Button>
 
@@ -28,7 +77,11 @@ const LinkItem = props => {
             color="secondary"
             onClick={() => checkUrl(link.link)}
           >
-            Check This Page
+            Check This Path
+          </Button>
+
+          <Button size="small" color="primary" onClick={handleOpen}>
+            Watch in HTML
           </Button>
         </Grid>
 
@@ -45,6 +98,7 @@ const LinkItem = props => {
           </Typography>
         </Grid>
       </Grid>
+      {modal}
     </ListItem>
   );
 };

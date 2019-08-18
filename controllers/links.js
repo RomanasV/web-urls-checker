@@ -14,11 +14,24 @@ exports.links_get_all = (req, res) => {
 
       const updatedLinks = await links.map(async link => {
         const id = uuid();
+        const { normalizedLink, linkInHtml, originalLink } = link;
         try {
-          await axios(link);
-          return { id, link, response: true };
+          await axios(normalizedLink);
+          return {
+            id,
+            link: normalizedLink,
+            response: true,
+            linkInHtml,
+            originalLink
+          };
         } catch {
-          return { id, link, response: false };
+          return {
+            id,
+            link: normalizedLink,
+            response: false,
+            linkInHtml,
+            originalLink
+          };
         }
       });
       const checkedLinks = await Promise.all(updatedLinks);
@@ -30,15 +43,26 @@ exports.links_get_all = (req, res) => {
   }
 
   const scrapeAllPageLinks = (response, pageUrl) => {
-    const $ = cheerio.load(response.data);
+    const $ = cheerio.load(response.data, { decodeEntities: false });
     const links = $("a");
     const urls = [];
 
     links.each((index, element) => {
       const link = $(element).attr("href");
+      let linkInHtml;
+
+      if ($(element).html() === $(element).text()) {
+        linkInHtml = $(element)
+          .parents()
+          .html();
+      } else {
+        linkInHtml = $(element).html();
+      }
+
       if (link) {
         const normalizedLink = linkNormalizer(link, pageUrl);
-        normalizedLink && urls.push(normalizedLink);
+        normalizedLink &&
+          urls.push({ normalizedLink, linkInHtml, originalLink: link });
       }
     });
     return urls;
