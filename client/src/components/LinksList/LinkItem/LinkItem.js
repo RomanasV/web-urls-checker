@@ -67,7 +67,7 @@ const LinkItem = props => {
           )}
         </Grid>
 
-        <Grid item md={3} sm={11} xs={11}>
+        <Grid item md={4} sm={11} xs={11}>
           <Button href={link.link} target="_blank" size="small" color="inherit">
             Visit
           </Button>
@@ -85,7 +85,7 @@ const LinkItem = props => {
           </Button>
         </Grid>
 
-        <Grid item md={8} sm={12} xs={12}>
+        <Grid item md={7} sm={12} xs={12}>
           <Typography noWrap>
             <Link
               href={link.link}
