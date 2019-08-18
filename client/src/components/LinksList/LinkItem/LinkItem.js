@@ -30,10 +30,10 @@ const LinkItem = props => {
     <Dialog fullWidth maxWidth="lg" open={open} onClose={handleClose}>
       <DialogTitle>
         <Typography>
-          <strong>Original:</strong> <em>{link.originalLink}</em>
+          <strong>Original path:</strong> <em>{link.originalLink}</em>
         </Typography>
         <Typography>
-          <strong>Modified:</strong> <em>{link.link}</em>
+          <strong>Modified path:</strong> <em>{link.link}</em>
         </Typography>
       </DialogTitle>
       <DialogContent>
