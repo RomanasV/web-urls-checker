@@ -59,7 +59,7 @@ const LinkItem = props => {
   return (
     <ListItem divider dense>
       <Grid container direction="row" justify="center" alignItems="center">
-        <Grid item md={1} sm={1} xs={1}>
+        <Grid item lg={1} md={1} sm={1} xs={1}>
           {link.response ? (
             <CheckCircleOutline />
           ) : (
@@ -67,7 +67,7 @@ const LinkItem = props => {
           )}
         </Grid>
 
-        <Grid item md={4} sm={11} xs={11}>
+        <Grid item lg={4} md={3} sm={11} xs={11}>
           <Button href={link.link} target="_blank" size="small" color="inherit">
             Visit
           </Button>
@@ -85,7 +85,7 @@ const LinkItem = props => {
           </Button>
         </Grid>
 
-        <Grid item md={7} sm={12} xs={12}>
+        <Grid item lg={7} md={8} sm={12} xs={12}>
           <Typography noWrap>
             <Link
               href={link.link}
